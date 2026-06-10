@@ -4,12 +4,12 @@ Internal app untuk manajemen pelanggan, produk, transaksi, piutang, bonus, dan l
 
 ## 🚀 Live Demo
 
-**URL:** `https://hl-finance.vercel.app` _(ganti dengan URL deploy kamu)_
+**URL:** `https://hl-finance.vercel.app`
 
 **Demo Credentials:**
 ```
 Email:    admin@hl.com
-Password: [isi setelah buat user di Supabase]
+Password: []
 ```
 
 ---
