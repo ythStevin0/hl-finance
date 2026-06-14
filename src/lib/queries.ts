@@ -35,29 +35,28 @@ export async function getCustomerById(
   supabase: DB,
   id: string
 ): Promise<Customer | null> {
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from('customers')
     .select('*')
     .eq('id', id)
     .is('soft_deleted_at', null)
     .single()
 
-  if (error) return null
-  return data
+  return data ?? null
 }
 
 export async function getCustomerWithDiscounts(
   supabase: DB,
   id: string
 ): Promise<CustomerWithDiscounts | null> {
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from('customers')
     .select('*, customer_discount_steps(*)')
     .eq('id', id)
     .is('soft_deleted_at', null)
     .single()
 
-  if (error || !data) return null
+  if (!data) return null
 
   const steps = (data.customer_discount_steps ?? []) as DiscountStep[]
 
@@ -70,22 +69,6 @@ export async function getCustomerWithDiscounts(
       .filter(s => s.type === 'BR')
       .sort((a, b) => a.step_order - b.step_order),
   }
-}
-
-export async function getDiscountSteps(
-  supabase: DB,
-  customerId: string,
-  type: 'LM' | 'BR'
-): Promise<DiscountStep[]> {
-  const { data, error } = await supabase
-    .from('customer_discount_steps')
-    .select('*')
-    .eq('customer_id', customerId)
-    .eq('type', type)
-    .order('step_order', { ascending: true })
-
-  if (error) throw error
-  return data ?? []
 }
 
 // ---- Products ----
@@ -106,36 +89,40 @@ export async function getProductById(
   supabase: DB,
   id: string
 ): Promise<Product | null> {
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from('products')
     .select('*')
     .eq('id', id)
     .is('soft_deleted_at', null)
     .single()
 
-  if (error) return null
-  return data
-}
-
-export async function getActiveProductsByType(
-  supabase: DB,
-  type: 'LM' | 'BR'
-): Promise<Product[]> {
-  const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .eq('type', type)
-    .is('soft_deleted_at', null)
-    .order('nama', { ascending: true })
-
-  if (error) throw error
-  return data ?? []
+  return data ?? null
 }
 
 // ---- Transactions ----
 
 export type TransactionWithItems = Transaction & {
   items: TransactionItem[]
+  customers?: { id: string; nama: string } | null
+}
+
+export async function getTransactionById(
+  supabase: DB,
+  id: string
+): Promise<TransactionWithItems | null> {
+  const { data } = await supabase
+    .from('transactions')
+    .select('*, transaction_items(*), customers(id, nama)')
+    .eq('id', id)
+    .single()
+
+  if (!data) return null
+
+  return {
+    ...data,
+    items: (data.transaction_items ?? []) as TransactionItem[],
+    customers: data.customers as { id: string; nama: string } | null,
+  }
 }
 
 export async function getTransactionsByCustomerAndMonth(
@@ -163,24 +150,6 @@ export async function getTransactionsByCustomerAndMonth(
   }))
 }
 
-export async function getTransactionById(
-  supabase: DB,
-  id: string
-): Promise<TransactionWithItems | null> {
-  const { data, error } = await supabase
-    .from('transactions')
-    .select('*, transaction_items(*), customers(id, nama)')
-    .eq('id', id)
-    .single()
-
-  if (error || !data) return null
-
-  return {
-    ...data,
-    items: (data.transaction_items ?? []) as TransactionItem[],
-  }
-}
-
 // ---- Customer Summary (View) ----
 
 export async function getCustomerSummaries(supabase: DB): Promise<CustomerSummary[]> {
@@ -196,12 +165,11 @@ export async function getCustomerSummaryById(
   supabase: DB,
   customerId: string
 ): Promise<CustomerSummary | null> {
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from('customer_summary')
     .select('*')
     .eq('customer_id', customerId)
     .single()
 
-  if (error) return null
-  return data
+  return data ?? null
 }
