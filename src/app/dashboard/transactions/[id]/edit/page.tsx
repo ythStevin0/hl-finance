@@ -1,10 +1,10 @@
 // src/app/dashboard/transactions/[id]/edit/page.tsx
-// AC-4.10: user can edit a transaction
-// AC-4.10.1: editing recalculates omzet, profit, totals
+// Update fase 4: load bonus statuses
 
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getTransactionById, getActiveCustomers, getActiveProducts } from '@/lib/queries'
+import { getAllBonusStatuses } from '@/lib/actions/bonus.actions'
 import TransactionForm from '@/components/transactions/TransactionForm'
 
 export default async function EditTransactionPage({
@@ -14,15 +14,15 @@ export default async function EditTransactionPage({
 }) {
   const supabase = await createClient()
 
-  const [transaction, customers, products] = await Promise.all([
+  const [transaction, customers, products, bonusStatusList] = await Promise.all([
     getTransactionById(supabase, params.id),
     getActiveCustomers(supabase),
     getActiveProducts(supabase),
+    getAllBonusStatuses(),
   ])
 
   if (!transaction) notFound()
 
-  // Load discount steps — 1 query untuk semua customers (DRY, efisien)
   const { data: allSteps } = await supabase
     .from('customer_discount_steps')
     .select('*')
@@ -36,30 +36,29 @@ export default async function EditTransactionPage({
     allDiscountSteps[step.customer_id][step.type as 'LM' | 'BR'].push(step)
   }
 
-  // Rebuild products untuk setiap line item dari snapshot
-  // Kita butuh Product object yang lengkap untuk form
-  // Gunakan snapshot data dari transaction_items
-  const lineItemsWithProducts = transaction.items.map(item => {
-    // Cari produk aktif yang matching — kalau tidak ada (soft-deleted), buat dari snapshot
-    const activeProduct = products.find(p => p.id === item.product_id)
+  const bonusStatuses = Object.fromEntries(
+    bonusStatusList.map(s => [s.customerId, s])
+  )
 
+  const lineItemsWithProducts = transaction.items.map(item => {
+    const activeProduct = products.find(p => p.id === item.product_id)
     const product = activeProduct ?? {
-      id: item.product_id,
-      nama: item.product_nama,
-      type: item.product_type,
-      harga_base: item.harga_base_snapshot,
-      harga_modal: item.harga_modal_snapshot,
-      soft_deleted_at: new Date().toISOString(), // sudah dihapus
-      created_at: '',
+      id:              item.product_id,
+      nama:            item.product_nama,
+      type:            item.product_type,
+      harga_base:      item.harga_base_snapshot,
+      harga_modal:     item.harga_modal_snapshot,
+      soft_deleted_at: new Date().toISOString(),
+      created_at:      '',
     }
 
     return {
       product,
-      qty: item.qty,
+      qty:                 item.qty,
       discountedUnitPrice: item.discounted_unit_price,
-      lineOmzet: item.line_omzet,
-      lineLaba: item.line_laba,
-      isFree: item.is_free,
+      lineOmzet:           item.line_omzet,
+      lineLaba:            item.line_laba,
+      isFree:              item.is_free,
     }
   })
 
@@ -76,6 +75,7 @@ export default async function EditTransactionPage({
           customers={customers}
           products={products}
           allDiscountSteps={allDiscountSteps}
+          bonusStatuses={bonusStatuses}
           initialData={{
             nomorBon:   transaction.nomor_bon,
             tanggal:    transaction.tanggal,
