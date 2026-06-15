@@ -1,29 +1,32 @@
 'use client'
 
 // src/components/transactions/TransactionForm.tsx
-// Komponen UI murni — tidak ada business logic di sini (SRP)
-// Semua logic ada di useTransactionForm hook
-// Semua DB calls ada di transaction.actions.ts
+// Update fase 4: integrasi BonusGrantSelector
+// AC-5.5: multiple bonus dalam 1 bon
+// AC-5.7: bonus lines omzet & laba = 0
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTransactionForm } from '@/hooks/useTransactionForm'
 import { createTransaction, updateTransaction } from '@/lib/actions/transaction.actions'
+import { recordBonusGrant } from '@/lib/actions/bonus.actions'
 import type { CustomerWithDiscountMap } from '@/lib/types/transaction'
+import type { BonusStatus } from '@/lib/types/bonus'
 import type { Product, Customer, DiscountStep } from '@/lib/supabase/types'
 import { cascadingDiscount } from '@/lib/calculations'
 import NomorBonInput from './NomorBonInput'
 import LineItemRow from './LineItemRow'
 import TransactionSummaryFooter from './TransactionSummaryFooter'
+import BonusGrantSelector from '@/components/bonus/BonusGrantSelector'
 
 interface Props {
   mode: 'new' | 'edit'
   editId?: string
   customers: Customer[]
   products: Product[]
-  // Map customer_id → discount steps (untuk lookup cepat)
   allDiscountSteps: Record<string, { LM: DiscountStep[]; BR: DiscountStep[] }>
-  // Pre-fill untuk edit mode atau dari query param
+  // Map customer_id → bonus status (untuk BonusGrantSelector)
+  bonusStatuses: Record<string, BonusStatus>
   defaultCustomerId?: string
   defaultIsBonus?: boolean
   initialData?: {
@@ -44,7 +47,6 @@ interface Props {
   }
 }
 
-// Build discount map dari steps array
 function buildDiscountMap(
   steps: { LM: DiscountStep[]; BR: DiscountStep[] }
 ): Record<'LM' | 'BR', number[]> {
@@ -60,22 +62,24 @@ export default function TransactionForm({
   customers,
   products,
   allDiscountSteps,
+  bonusStatuses,
   defaultCustomerId,
   defaultIsBonus = false,
   initialData,
 }: Props) {
   const router = useRouter()
-  const [isBonus, setIsBonus] = useState(initialData?.isBonus ?? defaultIsBonus)
-  const [submitError, setSubmitError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-
-  // Customer yang dipilih saat ini beserta discount map-nya
+  const [isBonus, setIsBonus]                   = useState(initialData?.isBonus ?? defaultIsBonus)
+  const [submitError, setSubmitError]           = useState<string | null>(null)
+  const [loading, setLoading]                   = useState(false)
   const [selectedCustomerId, setSelectedCustomerId] = useState(
     initialData?.customerId ?? defaultCustomerId ?? ''
   )
+  // AC-5.5: berapa bonus dikonsumsi di bon ini
+  const [quantityGranted, setQuantityGranted]   = useState(1)
 
   const currentDiscountSteps = allDiscountSteps[selectedCustomerId] ?? { LM: [], BR: [] }
-  const currentDiscountMap = buildDiscountMap(currentDiscountSteps)
+  const currentDiscountMap   = buildDiscountMap(currentDiscountSteps)
+  const currentBonusStatus   = bonusStatuses[selectedCustomerId] ?? null
 
   const customerWithDiscounts: CustomerWithDiscountMap | null = selectedCustomerId
     ? {
@@ -89,20 +93,20 @@ export default function TransactionForm({
     isBonus,
     initialState: initialData
       ? {
-          nomorBon:  initialData.nomorBon,
-          tanggal:   initialData.tanggal,
+          nomorBon:   initialData.nomorBon,
+          tanggal:    initialData.tanggal,
           customerId: initialData.customerId,
-          ongkir:    initialData.ongkir,
-          deskripsi: initialData.deskripsi,
-          isBonus:   initialData.isBonus,
-          lineItems: initialData.lineItems.map(item => ({
-            draftId: `draft_${item.product.id}`,
-            product: item.product,
-            qty: item.qty,
-            discountedUnitPrice: item.discountedUnitPrice,
-            lineOmzet: item.lineOmzet,
-            lineLaba: item.lineLaba,
-            isFree: item.isFree,
+          ongkir:     initialData.ongkir,
+          deskripsi:  initialData.deskripsi,
+          isBonus:    initialData.isBonus,
+          lineItems:  initialData.lineItems.map(item => ({
+            draftId:              `draft_${item.product.id}`,
+            product:              item.product,
+            qty:                  item.qty,
+            discountedUnitPrice:  item.discountedUnitPrice,
+            lineOmzet:            item.lineOmzet,
+            lineLaba:             item.lineLaba,
+            isFree:               item.isFree,
           })),
         }
       : { customerId: defaultCustomerId ?? '' },
@@ -112,6 +116,12 @@ export default function TransactionForm({
     e.preventDefault()
     const validationError = form.validate()
     if (validationError) { setSubmitError(validationError); return }
+
+    // Validasi bonus: kalau is_bonus, harus ada bonus tersedia
+    if (isBonus && currentBonusStatus && currentBonusStatus.bonusesAvailable === 0) {
+      setSubmitError('Pelanggan ini belum punya bonus tersedia.')
+      return
+    }
 
     setSubmitError(null)
     setLoading(true)
@@ -132,13 +142,22 @@ export default function TransactionForm({
       ? await createTransaction(input)
       : await updateTransaction(editId!, input)
 
-    setLoading(false)
-
     if (!result.success) {
       setSubmitError(result.error ?? 'Terjadi kesalahan.')
+      setLoading(false)
       return
     }
 
+    // AC-5.5: record bonus grant setelah bon berhasil dibuat
+    if (isBonus && result.id && currentBonusStatus && quantityGranted > 0) {
+      await recordBonusGrant({
+        customerId:      selectedCustomerId,
+        transactionId:   result.id,
+        quantityGranted,
+      })
+    }
+
+    setLoading(false)
     router.push(`/dashboard/transactions/${result.id}`)
     router.refresh()
   }
@@ -151,7 +170,7 @@ export default function TransactionForm({
         </div>
       )}
 
-      {/* Row 1: Nomor Bon + Tanggal */}
+      {/* Nomor Bon + Tanggal */}
       <div className="grid grid-cols-2 gap-4">
         <NomorBonInput
           value={form.nomorBon}
@@ -162,7 +181,6 @@ export default function TransactionForm({
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
             Tanggal <span className="text-red-500">*</span>
           </label>
-          {/* AC-4.1: default hari ini, bisa diubah */}
           <input
             type="date"
             value={form.tanggal}
@@ -173,20 +191,20 @@ export default function TransactionForm({
         </div>
       </div>
 
-      {/* Row 2: Customer */}
+      {/* Customer */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">
           Pelanggan <span className="text-red-500">*</span>
         </label>
-        {/* AC-4.3: pilih dari list, bukan free text */}
         <select
           value={selectedCustomerId}
           onChange={e => {
-            const newId = e.target.value
-            const newSteps = allDiscountSteps[newId] ?? { LM: [], BR: [] }
-            const newMap = buildDiscountMap(newSteps)
+            const newId  = e.target.value
+            const steps  = allDiscountSteps[newId] ?? { LM: [], BR: [] }
+            const newMap = buildDiscountMap(steps)
             setSelectedCustomerId(newId)
             form.handleCustomerChange(newId, newMap)
+            setQuantityGranted(1)
           }}
           className="input-base"
           required
@@ -198,7 +216,7 @@ export default function TransactionForm({
         </select>
       </div>
 
-      {/* Row 3: Bonus toggle — AC-5.5 */}
+      {/* Bonus toggle — AC-5.5 */}
       <div className="flex items-center gap-3 bg-purple-50 border border-purple-100 rounded-xl px-4 py-3">
         <input
           type="checkbox"
@@ -212,10 +230,18 @@ export default function TransactionForm({
         </label>
       </div>
 
-      {/* Row 4: Line Items */}
+      {/* Bonus Grant Selector — AC-5.5, 5.6 */}
+      {isBonus && selectedCustomerId && currentBonusStatus && (
+        <BonusGrantSelector
+          status={currentBonusStatus}
+          quantityGranted={quantityGranted}
+          onChange={setQuantityGranted}
+        />
+      )}
+
+      {/* Line Items */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-          {/* Header kolom */}
           <div className="grid grid-cols-12 gap-3 text-xs font-medium text-gray-400 uppercase tracking-wide">
             <div className="col-span-5">Produk</div>
             <div className="col-span-2 text-center">Qty</div>
@@ -232,7 +258,9 @@ export default function TransactionForm({
               discountMap={currentDiscountMap}
               canRemove={form.lineItems.length > 1}
               onProductChange={productId => {
-                const product = productId ? products.find(p => p.id === productId) ?? null : null
+                const product = productId
+                  ? products.find(p => p.id === productId) ?? null
+                  : null
                 form.updateProduct(item.draftId, product)
               }}
               onQtyChange={qty => form.updateQty(item.draftId, qty)}
@@ -254,13 +282,10 @@ export default function TransactionForm({
         </div>
       </div>
 
-      {/* Row 5: Ongkir + Deskripsi */}
+      {/* Ongkir + Deskripsi */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Ongkir (Rp)
-          </label>
-          {/* AC-4.8: numeric >= 0, per transaksi */}
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Ongkir (Rp)</label>
           <input
             type="number"
             value={form.ongkir}
@@ -282,7 +307,7 @@ export default function TransactionForm({
         </div>
       </div>
 
-      {/* Row 6: Summary — AC-4.11 */}
+      {/* Summary — AC-4.11 */}
       <TransactionSummaryFooter summary={form.summary} showLaba />
 
       {/* Actions */}
