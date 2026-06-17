@@ -27,6 +27,7 @@ export type Database = {
           bonus_threshold?: number
           soft_deleted_at?: string | null
         }
+        Relationships: []
       }
       customer_discount_steps: {
         Row: {
@@ -47,6 +48,15 @@ export type Database = {
           value?: number
           step_order?: number
         }
+        Relationships: [
+          {
+            foreignKeyName: 'customer_discount_steps_customer_id_fkey'
+            columns: ['customer_id']
+            isOneToOne: false
+            referencedRelation: 'customers'
+            referencedColumns: ['id']
+          },
+        ]
       }
       products: {
         Row: {
@@ -73,6 +83,7 @@ export type Database = {
           type?: 'LM' | 'BR'
           soft_deleted_at?: string | null
         }
+        Relationships: []
       }
       transactions: {
         Row: {
@@ -114,6 +125,15 @@ export type Database = {
           total_omzet?: number
           total_laba?: number
         }
+        Relationships: [
+          {
+            foreignKeyName: 'transactions_customer_id_fkey'
+            columns: ['customer_id']
+            isOneToOne: false
+            referencedRelation: 'customers'
+            referencedColumns: ['id']
+          },
+        ]
       }
       transaction_items: {
         Row: {
@@ -150,6 +170,22 @@ export type Database = {
           line_omzet?: number
           line_laba?: number
         }
+        Relationships: [
+          {
+            foreignKeyName: 'transaction_items_transaction_id_fkey'
+            columns: ['transaction_id']
+            isOneToOne: false
+            referencedRelation: 'transactions'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'transaction_items_product_id_fkey'
+            columns: ['product_id']
+            isOneToOne: false
+            referencedRelation: 'products'
+            referencedColumns: ['id']
+          },
+        ]
       }
       bonus_grants: {
         Row: {
@@ -165,15 +201,33 @@ export type Database = {
           transaction_id: string
           quantity_granted: number
         }
-        Update: never
+        Update: {}
+        Relationships: [
+          {
+            foreignKeyName: 'bonus_grants_customer_id_fkey'
+            columns: ['customer_id']
+            isOneToOne: false
+            referencedRelation: 'customers'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'bonus_grants_transaction_id_fkey'
+            columns: ['transaction_id']
+            isOneToOne: false
+            referencedRelation: 'transactions'
+            referencedColumns: ['id']
+          },
+        ]
       }
     }
     Views: {
       active_customers: {
         Row: Database['public']['Tables']['customers']['Row']
+        Relationships: []
       }
       active_products: {
         Row: Database['public']['Tables']['products']['Row']
+        Relationships: []
       }
       customer_summary: {
         Row: {
@@ -188,7 +242,14 @@ export type Database = {
           bonus_accumulator: number
           bonuses_granted: number
         }
+        Relationships: []
       }
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
     }
   }
 }

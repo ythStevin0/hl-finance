@@ -54,7 +54,6 @@ export default async function TransactionsPage() {
                   </div>
                 </div>
                 <div className="col-span-3">
-                  {/* @ts-expect-error supabase join */}
                   <span className="text-sm text-gray-700">{t.customers?.nama ?? '—'}</span>
                 </div>
                 <div className="col-span-2">

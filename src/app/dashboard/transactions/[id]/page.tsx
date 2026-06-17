@@ -47,7 +47,6 @@ export default async function TransactionDetailPage({
             </Badge>
           </div>
           <p className="text-gray-500 text-sm mt-1">
-            {/* @ts-expect-error supabase join */}
             {transaction.customers?.nama} ·{' '}
             {new Date(transaction.tanggal).toLocaleDateString('id-ID', {
               weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
