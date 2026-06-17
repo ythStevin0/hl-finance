@@ -5,6 +5,7 @@
 // (atau: npx vitest run src/lib/calculations.test.ts)
 // ============================================================
 
+import { describe, test, expect } from 'vitest'
 import {
   cascadingDiscount,
   effectiveDiscountPercent,

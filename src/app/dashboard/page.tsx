@@ -116,7 +116,6 @@ export default async function DashboardPage() {
                         )}
                       </div>
                       <p className="text-xs text-gray-400">
-                        {/* @ts-expect-error Supabase join type */}
                         {t.customers?.nama} · {new Date(t.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>
                     </div>

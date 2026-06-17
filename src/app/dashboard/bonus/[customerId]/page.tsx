@@ -67,17 +67,14 @@ export default async function CustomerBonusLogPage({
                     <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-medium">
                       {grant.quantity_granted}× bonus
                     </span>
-                    {/* @ts-expect-error supabase join */}
                     <Link
                       href={`/dashboard/transactions/${grant.transactions?.id}`}
                       className="text-sm font-medium text-blue-600 hover:text-blue-700"
                     >
-                      {/* @ts-expect-error supabase join */}
                       {grant.transactions?.nomor_bon ?? '—'}
                     </Link>
                   </div>
                   <p className="text-xs text-gray-400 mt-0.5">
-                    {/* @ts-expect-error supabase join */}
                     {grant.transactions?.tanggal
                       ? new Date(grant.transactions.tanggal).toLocaleDateString('id-ID', {
                           day: 'numeric', month: 'long', year: 'numeric',
