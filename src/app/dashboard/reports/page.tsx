@@ -30,110 +30,128 @@ interface PageProps {
 }
 
 export default async function ReportsPage({ searchParams }: PageProps) {
-  const supabase = await createClient()
+  try {
+    const supabase = await createClient()
 
-  const now          = new Date()
-  const scope        = (searchParams.scope ?? 'overall') as ReportScope
-  const customerId   = searchParams.customerId ?? ''
-  const productType  = (searchParams.productType ?? 'ALL') as ProductTypeFilter
-  const month        = parseInt(searchParams.month ?? '0')
-  const year         = parseInt(searchParams.year ?? String(now.getFullYear()))
+    const now          = new Date()
+    const scope        = (searchParams.scope ?? 'overall') as ReportScope
+    const customerId   = searchParams.customerId ?? ''
+    const productType  = (searchParams.productType ?? 'ALL') as ProductTypeFilter
+    const month        = parseInt(searchParams.month ?? '0')
+    const year         = parseInt(searchParams.year ?? String(now.getFullYear()))
 
-  const [customers, reportData] = await Promise.all([
-    getActiveCustomers(supabase),
-    getReportData({
-      scope,
-      customerId:  scope === 'customer' ? customerId : undefined,
-      productType: scope === 'customer' ? productType : undefined,
-      month:       month > 0 ? month : undefined,
-      year,
-    }),
-  ])
+    const [customers, reportData] = await Promise.all([
+      getActiveCustomers(supabase),
+      getReportData({
+        scope,
+        customerId:  scope === 'customer' ? customerId : undefined,
+        productType: scope === 'customer' ? productType : undefined,
+        month:       month > 0 ? month : undefined,
+        year,
+      }),
+    ])
 
-  // Build judul untuk PDF
-  const scopeLabel =
-    scope === 'overall'      ? 'Semua Customer' :
-    scope === 'customer'     ? (customers.find(c => c.id === customerId)?.nama ?? 'Customer') :
-    'Per Tipe Produk (LM/BR)'
+    // Build judul untuk PDF
+    const scopeLabel =
+      scope === 'overall'      ? 'Semua Customer' :
+      scope === 'customer'     ? (customers.find(c => c.id === customerId)?.nama ?? 'Customer') :
+      'Per Tipe Produk (LM/BR)'
 
-  const monthLabel = month > 0
-    ? ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][month - 1]
-    : 'Semua Bulan'
+    const monthLabel = month > 0
+      ? ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][month - 1]
+      : 'Semua Bulan'
 
-  const pdfTitle    = `Laporan HL Finance — ${scopeLabel}`
-  const pdfSubtitle = `${monthLabel} ${year}`
-  const pdfFileName = `laporan-hl-${scope}-${year}${month > 0 ? `-${month}` : ''}`
+    const pdfTitle    = `Laporan HL Finance — ${scopeLabel}`
+    const pdfSubtitle = `${monthLabel} ${year}`
+    const pdfFileName = `laporan-hl-${scope}-${year}${month > 0 ? `-${month}` : ''}`
 
-  const { totals } = reportData
+    const { totals } = reportData
 
-  return (
-    <div className="p-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Laporan</h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Rekap omzet, laba, dan piutang — hanya transaksi Lunas (cash basis)
-          </p>
+    return (
+      <div className="p-6 max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Laporan</h1>
+            <p className="text-gray-500 text-sm mt-1">
+              Rekap omzet, laba, dan piutang — hanya transaksi Lunas (cash basis)
+            </p>
+          </div>
+          {/* AC-7.8: Download PDF */}
+          <DownloadPdfButton
+            data={reportData}
+            title={pdfTitle}
+            subtitle={pdfSubtitle}
+            fileName={pdfFileName}
+          />
         </div>
-        {/* AC-7.8: Download PDF */}
-        <DownloadPdfButton
-          data={reportData}
-          title={pdfTitle}
-          subtitle={pdfSubtitle}
-          fileName={pdfFileName}
+
+        {/* Filter — AC-7.4 */}
+        <ReportFilterBar
+          customers={customers}
+          currentScope={scope}
+          currentCustomerId={customerId}
+          currentProductType={productType}
+          currentMonth={month}
+          currentYear={year}
         />
+
+        {/* Summary Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <StatCard
+            label="Total Omzet Lunas"
+            value={formatRupiah(totals.omzetTotal)}
+            description="Cash basis"
+            color="blue"
+          />
+          {/* AC-7.6: Total Laba HL across all */}
+          <StatCard
+            label="Total Laba HL"
+            value={formatRupiah(totals.labaHL)}
+            description="Setelah modal"
+            color="green"
+          />
+          <StatCard
+            label="Total Piutang"
+            value={formatRupiah(totals.piutang)}
+            description="Belum dilunasi"
+            color="amber"
+          />
+          <StatCard
+            label="Sudah Dibayar"
+            value={formatRupiah(totals.sudahDibayar)}
+            description="Omzet + ongkir"
+            color="gray"
+          />
+        </div>
+
+        {/* Rekap Table — AC-7.5, AC-6.3 */}
+        <div className="mb-2">
+          <h2 className="text-sm font-semibold text-gray-900 mb-3">
+            Detail Rekap · {scopeLabel} · {monthLabel} {year}
+          </h2>
+          <ReportTable rows={reportData.rows} totals={reportData.totals} />
+        </div>
+
+        {/* Bonus Log — AC-7.7 */}
+        <BonusLogTable rows={reportData.bonusTransactions} />
       </div>
-
-      {/* Filter — AC-7.4 */}
-      <ReportFilterBar
-        customers={customers}
-        currentScope={scope}
-        currentCustomerId={customerId}
-        currentProductType={productType}
-        currentMonth={month}
-        currentYear={year}
-      />
-
-      {/* Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <StatCard
-          label="Total Omzet Lunas"
-          value={formatRupiah(totals.omzetTotal)}
-          description="Cash basis"
-          color="blue"
-        />
-        {/* AC-7.6: Total Laba HL across all */}
-        <StatCard
-          label="Total Laba HL"
-          value={formatRupiah(totals.labaHL)}
-          description="Setelah modal"
-          color="green"
-        />
-        <StatCard
-          label="Total Piutang"
-          value={formatRupiah(totals.piutang)}
-          description="Belum dilunasi"
-          color="amber"
-        />
-        <StatCard
-          label="Sudah Dibayar"
-          value={formatRupiah(totals.sudahDibayar)}
-          description="Omzet + ongkir"
-          color="gray"
-        />
+    )
+  } catch (error) {
+    console.error('ReportsPage error:', error)
+    return (
+      <div className="p-6 max-w-6xl mx-auto">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Laporan</h1>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+          <p className="text-red-700 font-medium mb-2">Gagal memuat data laporan</p>
+          <p className="text-red-500 text-sm">
+            {error instanceof Error ? error.message : 'Terjadi kesalahan pada server. Pastikan koneksi database aktif.'}
+          </p>
+          <a href="/dashboard/reports" className="inline-block mt-4 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors">
+            Coba Lagi
+          </a>
+        </div>
       </div>
-
-      {/* Rekap Table — AC-7.5, AC-6.3 */}
-      <div className="mb-2">
-        <h2 className="text-sm font-semibold text-gray-900 mb-3">
-          Detail Rekap · {scopeLabel} · {monthLabel} {year}
-        </h2>
-        <ReportTable rows={reportData.rows} totals={reportData.totals} />
-      </div>
-
-      {/* Bonus Log — AC-7.7 */}
-      <BonusLogTable rows={reportData.bonusTransactions} />
-    </div>
-  )
+    )
+  }
 }

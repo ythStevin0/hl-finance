@@ -147,17 +147,24 @@ export async function getReportData(filter: ReportFilter): Promise<ReportData> {
     quantityGranted: 0, // akan diisi dari bonus_grants
   }))
 
-  // Ambil bonus grants untuk log
-  const { data: grants } = await supabase
-    .from('bonus_grants')
-    .select('transaction_id, quantity_granted')
-    .in('transaction_id', bonusTx.map(t => t.id))
+  // Ambil bonus grants untuk log — wrapped in try-catch in case table doesn't exist
+  try {
+    if (bonusTx.length > 0) {
+      const { data: grants } = await supabase
+        .from('bonus_grants')
+        .select('transaction_id, quantity_granted')
+        .in('transaction_id', bonusTx.map(t => t.id))
 
-  const grantMap = new Map(grants?.map(g => [g.transaction_id, g.quantity_granted]) ?? [])
-  bonusTransactions.forEach(b => {
-    const tx = bonusTx.find(t => t.nomor_bon === b.nomorBon)
-    if (tx) b.quantityGranted = grantMap.get(tx.id) ?? 0
-  })
+      const grantMap = new Map(grants?.map(g => [g.transaction_id, g.quantity_granted]) ?? [])
+      bonusTransactions.forEach(b => {
+        const tx = bonusTx.find(t => t.nomor_bon === b.nomorBon)
+        if (tx) b.quantityGranted = grantMap.get(tx.id) ?? 0
+      })
+    }
+  } catch {
+    // bonus_grants table may not exist yet — continue without bonus data
+    console.warn('bonus_grants query failed — table may not exist')
+  }
 
   return {
     filter,
