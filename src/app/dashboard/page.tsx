@@ -53,81 +53,95 @@ export default async function DashboardPage() {
   }) ?? []
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div style={{ padding: '1.5rem', maxWidth: '72rem', margin: '0 auto' }}>
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Ringkasan keuangan HL · Hanya transaksi Lunas (cash basis)
-        </p>
+      <div className="dash-header">
+        <h1>Dashboard</h1>
+        <p>Ringkasan keuangan HL · Hanya transaksi Lunas (cash basis)</p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="dash-stats">
         <StatCard
           label="Total Omzet"
           value={formatRupiah(totals.omzet)}
           description="Lunas bulan ini"
           color="blue"
+          icon={
+            <svg fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+            </svg>
+          }
         />
         <StatCard
           label="Laba HL"
           value={formatRupiah(totals.laba)}
           description="Setelah modal"
           color="green"
+          icon={
+            <svg fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+            </svg>
+          }
         />
         <StatCard
           label="Piutang"
           value={formatRupiah(totals.piutang)}
           description="Belum dibayar"
           color="amber"
+          icon={
+            <svg fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          }
         />
         <StatCard
           label="Sudah Dibayar"
           value={formatRupiah(totals.sudahDibayar)}
           description="Omzet + ongkir"
           color="gray"
+          icon={
+            <svg fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          }
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="dash-content">
         {/* Transaksi Terbaru */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="font-semibold text-gray-900 text-sm">Transaksi Terbaru</h2>
-            <a href="/dashboard/transactions" className="text-xs text-blue-600 hover:text-blue-700">
+        <div className="dash-section">
+          <div className="dash-section-header">
+            <h2 className="dash-section-title">Transaksi Terbaru</h2>
+            <a href="/dashboard/transactions" className="dash-section-link">
               Lihat semua →
             </a>
           </div>
-          <div className="divide-y divide-gray-50">
+          <div className="dash-tx-list">
             {recentTransactions && recentTransactions.length > 0 ? (
               recentTransactions.map((t) => (
-                <div key={t.id} className="px-5 py-3.5 flex items-center justify-between">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {t.nomor_bon}
-                        </p>
+                <div key={t.id} className="dash-tx-row">
+                  <div className="dash-tx-info">
+                    <div className="dash-tx-detail">
+                      <div className="dash-tx-bon">
+                        <p>{t.nomor_bon}</p>
                         {t.is_bonus && (
-                          <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-medium">
-                            Bonus
-                          </span>
+                          <span className="dash-tx-badge-bonus">Bonus</span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-400">
+                      <p className="dash-tx-meta">
                         {t.customers?.nama} · {new Date(t.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>
                     </div>
                   </div>
-                  <div className="text-right shrink-0 ml-4">
-                    <p className="text-sm font-medium text-gray-900">
+                  <div className="dash-tx-right">
+                    <p className="dash-tx-amount">
                       {formatRupiah(t.total_omzet + t.ongkir)}
                     </p>
-                    <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                    <span className={`dash-tx-status ${
                       t.status === 'lunas'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-yellow-100 text-yellow-700'
+                        ? 'dash-tx-status-lunas'
+                        : 'dash-tx-status-piutang'
                     }`}>
                       {t.status === 'lunas' ? 'Lunas' : 'Piutang'}
                     </span>
@@ -135,7 +149,7 @@ export default async function DashboardPage() {
                 </div>
               ))
             ) : (
-              <div className="px-5 py-8 text-center text-gray-400 text-sm">
+              <div className="dash-empty">
                 Belum ada transaksi
               </div>
             )}
@@ -143,38 +157,38 @@ export default async function DashboardPage() {
         </div>
 
         {/* Bonus Alert */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900 text-sm">
+        <div className="dash-section">
+          <div className="dash-section-header">
+            <h2 className="dash-section-title">
               Pelanggan Berhak Bonus
               {customersWithBonus.length > 0 && (
-                <span className="ml-2 bg-purple-100 text-purple-700 text-xs px-1.5 py-0.5 rounded-full font-medium">
+                <span className="dash-section-badge">
                   {customersWithBonus.length}
                 </span>
               )}
             </h2>
           </div>
-          <div className="divide-y divide-gray-50">
+          <div>
             {customersWithBonus.length > 0 ? (
               customersWithBonus.map((c) => {
                 const threshold = thresholdMap.get(c.customer_id) ?? 10_000_000
                 const available = Math.floor(c.bonus_accumulator / threshold) - c.bonuses_granted
                 return (
-                  <div key={c.customer_id} className="px-5 py-3.5 flex items-center justify-between">
+                  <div key={c.customer_id} className="dash-bonus-row">
                     <a
                       href={`/dashboard/customers/${c.customer_id}`}
-                      className="text-sm font-medium text-blue-600 hover:text-blue-700 truncate"
+                      className="dash-bonus-name"
                     >
                       {c.nama}
                     </a>
-                    <span className="shrink-0 ml-2 bg-purple-600 text-white text-xs px-2 py-1 rounded-full font-medium">
+                    <span className="dash-bonus-count">
                       {available}× bonus
                     </span>
                   </div>
                 )
               })
             ) : (
-              <div className="px-5 py-8 text-center text-gray-400 text-sm">
+              <div className="dash-empty">
                 Tidak ada bonus tersedia
               </div>
             )}
@@ -190,24 +204,22 @@ function StatCard({
   value,
   description,
   color,
+  icon,
 }: {
   label: string
   value: string
   description: string
   color: 'blue' | 'green' | 'amber' | 'gray'
+  icon: React.ReactNode
 }) {
-  const colorMap = {
-    blue: 'bg-blue-50 text-blue-700',
-    green: 'bg-green-50 text-green-700',
-    amber: 'bg-amber-50 text-amber-700',
-    gray: 'bg-gray-50 text-gray-600',
-  }
-
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4">
-      <p className="text-xs font-medium text-gray-500 mb-1">{label}</p>
-      <p className={`text-lg font-bold ${colorMap[color].split(' ')[1]}`}>{value}</p>
-      <p className="text-xs text-gray-400 mt-0.5">{description}</p>
+    <div className={`dash-stat-card dash-stat-card-${color}`}>
+      <div className={`dash-stat-icon dash-stat-icon-${color}`}>
+        {icon}
+      </div>
+      <p className="dash-stat-label">{label}</p>
+      <p className={`dash-stat-value dash-stat-value-${color}`}>{value}</p>
+      <p className="dash-stat-desc">{description}</p>
     </div>
   )
 }
