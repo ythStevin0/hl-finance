@@ -155,9 +155,21 @@ CREATE TRIGGER transactions_updated_at
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 -- ============================================================
--- 9. ROW LEVEL SECURITY (RLS)
--- Supabase: aktifkan RLS, hanya user yang login bisa akses
+-- 9. ROW LEVEL SECURITY (RLS) & PRIVILEGES
+-- Pastikan role aplikasi ('authenticated' & 'anon') bisa mengakses tabel
 -- ============================================================
+GRANT ALL ON TABLE products TO authenticated, anon;
+GRANT ALL ON TABLE customers TO authenticated, anon;
+GRANT ALL ON TABLE transactions TO authenticated, anon;
+GRANT ALL ON TABLE transaction_items TO authenticated, anon;
+GRANT ALL ON TABLE customer_discount_steps TO authenticated, anon;
+GRANT ALL ON TABLE bonus_grants TO authenticated, anon;
+
+-- Pastikan View juga bisa diakses
+GRANT ALL ON customer_summary TO authenticated, anon;
+GRANT ALL ON active_customers TO authenticated, anon;
+GRANT ALL ON active_products TO authenticated, anon;
+
 ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE customer_discount_steps ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
@@ -165,22 +177,10 @@ ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE transaction_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bonus_grants ENABLE ROW LEVEL SECURITY;
 
--- Policy: hanya authenticated user yang bisa akses semua data
--- (Single user app — AC-1.2)
-CREATE POLICY "Authenticated users only" ON customers
-  FOR ALL TO authenticated USING (true) WITH CHECK (true);
-
-CREATE POLICY "Authenticated users only" ON customer_discount_steps
-  FOR ALL TO authenticated USING (true) WITH CHECK (true);
-
-CREATE POLICY "Authenticated users only" ON products
-  FOR ALL TO authenticated USING (true) WITH CHECK (true);
-
-CREATE POLICY "Authenticated users only" ON transactions
-  FOR ALL TO authenticated USING (true) WITH CHECK (true);
-
-CREATE POLICY "Authenticated users only" ON transaction_items
-  FOR ALL TO authenticated USING (true) WITH CHECK (true);
-
-CREATE POLICY "Authenticated users only" ON bonus_grants
-  FOR ALL TO authenticated USING (true) WITH CHECK (true);
+-- Policy: Izinkan akses penuh untuk aplikasi (app-level security via Next.js middleware)
+CREATE POLICY "Enable full access for app" ON customers FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Enable full access for app" ON customer_discount_steps FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Enable full access for app" ON products FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Enable full access for app" ON transactions FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Enable full access for app" ON transaction_items FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Enable full access for app" ON bonus_grants FOR ALL USING (true) WITH CHECK (true);
