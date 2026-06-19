@@ -3,26 +3,19 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { formatRupiah, calcBonusAvailable } from '@/lib/calculations'
 import DeleteCustomerButton from '@/components/customers/DeleteCustomerButton'
+import { getActiveCustomersWithDiscounts, getCustomerSummaries } from '@/lib/queries'
 
 export default async function CustomersPage() {
   const supabase = await createClient()
 
-  // Ambil semua customer aktif beserta discount steps
-  const { data: customers } = await supabase
-    .from('customers')
-    .select(`
-      *,
-      customer_discount_steps (*)
-    `)
-    .is('soft_deleted_at', null)
-    .order('created_at', { ascending: false })
+  // Ambil data pelanggan dan ringkasannya menggunakan query helper terpusat
+  const [customers, summaries] = await Promise.all([
+    getActiveCustomersWithDiscounts(supabase),
+    getCustomerSummaries(supabase),
+  ])
 
-  // Ambil summary untuk bonus indicator
-  const { data: summaries } = await supabase
-    .from('customer_summary')
-    .select('*')
+  const summaryMap = new Map(summaries.map(s => [s.customer_id, s]))
 
-  const summaryMap = new Map(summaries?.map(s => [s.customer_id, s]) ?? [])
 
   return (
     <div className="p-6 max-w-5xl mx-auto">

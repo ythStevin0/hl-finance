@@ -4,16 +4,13 @@ import Link from 'next/link'
 import { formatRupiah } from '@/lib/calculations'
 import Badge from '@/components/ui/Badge'
 import EmptyState from '@/components/ui/EmptyState'
+import { getRecentTransactions } from '@/lib/queries'
 
 export default async function TransactionsPage() {
   const supabase = await createClient()
 
-  const { data: transactions } = await supabase
-    .from('transactions')
-    .select('*, customers(nama)')
-    .order('tanggal', { ascending: false })
-    .order('created_at', { ascending: false })
-    .limit(100)
+  const transactions = await getRecentTransactions(supabase, 100)
+
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
