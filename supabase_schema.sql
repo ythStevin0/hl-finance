@@ -165,6 +165,11 @@ GRANT ALL ON TABLE transaction_items TO authenticated, anon;
 GRANT ALL ON TABLE customer_discount_steps TO authenticated, anon;
 GRANT ALL ON TABLE bonus_grants TO authenticated, anon;
 
+-- Pastikan View juga bisa diakses
+GRANT ALL ON customer_summary TO authenticated, anon;
+GRANT ALL ON active_customers TO authenticated, anon;
+GRANT ALL ON active_products TO authenticated, anon;
+
 ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE customer_discount_steps ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
