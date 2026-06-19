@@ -20,83 +20,175 @@ type DB = SupabaseClient<Database>
 
 // ---- Customers ----
 
-export async function getActiveCustomers(supabase: DB): Promise<Customer[]> {
-  const { data, error } = await supabase
-    .from('customers')
-    .select('*')
-    .is('soft_deleted_at', null)
-    .order('created_at', { ascending: false })
+export type CustomerWithDiscountSteps = Customer & {
+  customer_discount_steps?: DiscountStep[]
+}
 
-  if (error) throw error
-  return data ?? []
+export async function getActiveCustomersWithDiscounts(supabase: DB): Promise<CustomerWithDiscountSteps[]> {
+  try {
+    const { data, error } = await supabase
+      .from('customers')
+      .select(`
+        *,
+        customer_discount_steps (*)
+      `)
+      .is('soft_deleted_at', null)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.warn('Error fetching active customers with discounts:', error.message)
+      return []
+    }
+    return data ?? []
+  } catch (err) {
+    console.warn('Unhandled exception in getActiveCustomersWithDiscounts:', err)
+    return []
+  }
+}
+
+export async function getActiveCustomers(supabase: DB): Promise<Customer[]> {
+  try {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .is('soft_deleted_at', null)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.warn('Error fetching active customers:', error.message)
+      return []
+    }
+    return data ?? []
+  } catch (err) {
+    console.warn('Unhandled exception in getActiveCustomers:', err)
+    return []
+  }
 }
 
 export async function getCustomerById(
   supabase: DB,
   id: string
 ): Promise<Customer | null> {
-  const { data } = await supabase
-    .from('customers')
-    .select('*')
-    .eq('id', id)
-    .is('soft_deleted_at', null)
-    .single()
+  try {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('id', id)
+      .is('soft_deleted_at', null)
+      .single()
 
-  return data ?? null
+    if (error) {
+      console.warn(`Error fetching customer ${id}:`, error.message)
+      return null
+    }
+    return data ?? null
+  } catch (err) {
+    console.warn(`Unhandled exception in getCustomerById for ${id}:`, err)
+    return null
+  }
 }
 
 export async function getCustomerWithDiscounts(
   supabase: DB,
   id: string
 ): Promise<CustomerWithDiscounts | null> {
-  const { data } = await supabase
-    .from('customers')
-    .select('*, customer_discount_steps(*)')
-    .eq('id', id)
-    .is('soft_deleted_at', null)
-    .single()
+  try {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*, customer_discount_steps(*)')
+      .eq('id', id)
+      .is('soft_deleted_at', null)
+      .single()
 
-  if (!data) return null
+    if (error || !data) {
+      if (error) console.warn(`Error fetching customer discounts ${id}:`, error.message)
+      return null
+    }
 
-  const steps = (data.customer_discount_steps ?? []) as DiscountStep[]
+    const steps = (data.customer_discount_steps ?? []) as DiscountStep[]
 
-  return {
-    ...data,
-    discount_steps_lm: steps
-      .filter(s => s.type === 'LM')
-      .sort((a, b) => a.step_order - b.step_order),
-    discount_steps_br: steps
-      .filter(s => s.type === 'BR')
-      .sort((a, b) => a.step_order - b.step_order),
+    return {
+      ...data,
+      discount_steps_lm: steps
+        .filter(s => s.type === 'LM')
+        .sort((a, b) => a.step_order - b.step_order),
+      discount_steps_br: steps
+        .filter(s => s.type === 'BR')
+        .sort((a, b) => a.step_order - b.step_order),
+    }
+  } catch (err) {
+    console.warn(`Unhandled exception in getCustomerWithDiscounts for ${id}:`, err)
+    return null
   }
 }
 
 // ---- Products ----
 
 export async function getActiveProducts(supabase: DB): Promise<Product[]> {
-  const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .is('soft_deleted_at', null)
-    .order('type', { ascending: true })
-    .order('nama', { ascending: true })
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .is('soft_deleted_at', null)
+      .order('type', { ascending: true })
+      .order('nama', { ascending: true })
 
-  if (error) throw error
-  return data ?? []
+    if (error) {
+      console.warn('Error fetching active products:', error.message)
+      return []
+    }
+    return data ?? []
+  } catch (err) {
+    console.warn('Unhandled exception in getActiveProducts:', err)
+    return []
+  }
 }
 
 export async function getProductById(
   supabase: DB,
   id: string
 ): Promise<Product | null> {
-  const { data } = await supabase
-    .from('products')
-    .select('*')
-    .eq('id', id)
-    .is('soft_deleted_at', null)
-    .single()
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', id)
+      .is('soft_deleted_at', null)
+      .single()
 
-  return data ?? null
+    if (error) {
+      console.warn(`Error fetching product ${id}:`, error.message)
+      return null
+    }
+    return data ?? null
+  } catch (err) {
+    console.warn(`Unhandled exception in getProductById for ${id}:`, err)
+    return null
+  }
+}
+
+export type TransactionWithCustomerName = Transaction & {
+  customers: { nama: string } | null
+}
+
+export async function getRecentTransactions(supabase: DB, limit: number = 100): Promise<TransactionWithCustomerName[]> {
+  try {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*, customers(nama)')
+      .order('tanggal', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      console.warn('Error fetching recent transactions:', error.message)
+      return []
+    }
+    return (data ?? []) as TransactionWithCustomerName[]
+  } catch (err) {
+    console.warn('Unhandled exception in getRecentTransactions:', err)
+    return []
+  }
 }
 
 // ---- Transactions ----
@@ -110,18 +202,26 @@ export async function getTransactionById(
   supabase: DB,
   id: string
 ): Promise<TransactionWithItems | null> {
-  const { data } = await supabase
-    .from('transactions')
-    .select('*, transaction_items(*), customers(id, nama)')
-    .eq('id', id)
-    .single()
+  try {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*, transaction_items(*), customers(id, nama)')
+      .eq('id', id)
+      .single()
 
-  if (!data) return null
+    if (error || !data) {
+      if (error) console.warn(`Error fetching transaction ${id}:`, error.message)
+      return null
+    }
 
-  return {
-    ...data,
-    items: (data.transaction_items ?? []) as TransactionItem[],
-    customers: data.customers as { id: string; nama: string } | null,
+    return {
+      ...data,
+      items: (data.transaction_items ?? []) as TransactionItem[],
+      customers: data.customers as { id: string; nama: string } | null,
+    }
+  } catch (err) {
+    console.warn(`Unhandled exception in getTransactionById for ${id}:`, err)
+    return null
   }
 }
 
@@ -131,45 +231,71 @@ export async function getTransactionsByCustomerAndMonth(
   year: number,
   month: number
 ): Promise<TransactionWithItems[]> {
-  const startDate = `${year}-${String(month).padStart(2, '0')}-01`
-  const endDate = new Date(year, month, 0).toISOString().split('T')[0]
+  try {
+    const startDate = `${year}-${String(month).padStart(2, '0')}-01`
+    const endDate = new Date(year, month, 0).toISOString().split('T')[0]
 
-  const { data, error } = await supabase
-    .from('transactions')
-    .select('*, transaction_items(*)')
-    .eq('customer_id', customerId)
-    .gte('tanggal', startDate)
-    .lte('tanggal', endDate)
-    .order('tanggal', { ascending: false })
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*, transaction_items(*)')
+      .eq('customer_id', customerId)
+      .gte('tanggal', startDate)
+      .lte('tanggal', endDate)
+      .order('tanggal', { ascending: false })
 
-  if (error) throw error
+    if (error) {
+      console.warn(`Error fetching transactions for customer ${customerId}:`, error.message)
+      return []
+    }
 
-  return (data ?? []).map(t => ({
-    ...t,
-    items: (t.transaction_items ?? []) as TransactionItem[],
-  }))
+    return (data ?? []).map(t => ({
+      ...t,
+      items: (t.transaction_items ?? []) as TransactionItem[],
+    }))
+  } catch (err) {
+    console.warn(`Unhandled exception in getTransactionsByCustomerAndMonth for customer ${customerId}:`, err)
+    return []
+  }
 }
 
 // ---- Customer Summary (View) ----
 
 export async function getCustomerSummaries(supabase: DB): Promise<CustomerSummary[]> {
-  const { data, error } = await supabase
-    .from('customer_summary')
-    .select('*')
+  try {
+    const { data, error } = await supabase
+      .from('customer_summary')
+      .select('*')
 
-  if (error) throw error
-  return data ?? []
+    if (error) {
+      console.warn('Error fetching customer summaries:', error.message)
+      return []
+    }
+    return data ?? []
+  } catch (err) {
+    console.warn('Unhandled exception in getCustomerSummaries:', err)
+    return []
+  }
 }
 
 export async function getCustomerSummaryById(
   supabase: DB,
   customerId: string
 ): Promise<CustomerSummary | null> {
-  const { data } = await supabase
-    .from('customer_summary')
-    .select('*')
-    .eq('customer_id', customerId)
-    .single()
+  try {
+    const { data, error } = await supabase
+      .from('customer_summary')
+      .select('*')
+      .eq('customer_id', customerId)
+      .single()
 
-  return data ?? null
+    if (error) {
+      console.warn(`Error fetching customer summary for customer ${customerId}:`, error.message)
+      return null
+    }
+    return data ?? null
+  } catch (err) {
+    console.warn(`Unhandled exception in getCustomerSummaryById for customer ${customerId}:`, err)
+    return null
+  }
 }
+

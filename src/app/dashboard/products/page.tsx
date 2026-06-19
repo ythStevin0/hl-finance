@@ -3,19 +3,16 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { formatRupiah } from '@/lib/calculations'
 import DeleteProductButton from '@/components/products/DeleteProductButton'
+import { getActiveProducts } from '@/lib/queries'
 
 export default async function ProductsPage() {
   const supabase = await createClient()
 
-  const { data: products } = await supabase
-    .from('products')
-    .select('*')
-    .is('soft_deleted_at', null)
-    .order('type', { ascending: true })
-    .order('nama', { ascending: true })
+  const products = await getActiveProducts(supabase)
 
-  const lmProducts = products?.filter(p => p.type === 'LM') ?? []
-  const brProducts = products?.filter(p => p.type === 'BR') ?? []
+  const lmProducts = products.filter(p => p.type === 'LM')
+  const brProducts = products.filter(p => p.type === 'BR')
+
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
