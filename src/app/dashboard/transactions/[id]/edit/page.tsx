@@ -7,6 +7,8 @@ import { getTransactionById, getActiveCustomers, getActiveProducts } from '@/lib
 import { getAllBonusStatuses } from '@/lib/actions/bonus.actions'
 import TransactionForm from '@/components/transactions/TransactionForm'
 
+import Link from 'next/link'
+
 export default async function EditTransactionPage({
   params,
 }: {
@@ -65,10 +67,17 @@ export default async function EditTransactionPage({
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <div className="mb-6">
+        <div className="flex items-center gap-2 mb-1 text-sm font-medium">
+          <Link href="/dashboard/transactions" className="text-gray-400 hover:text-gray-600">
+            Transaksi
+          </Link>
+          <span className="text-gray-300">/</span>
+          <span className="text-gray-600">Edit Bon</span>
+        </div>
         <h1 className="text-2xl font-bold text-gray-900">Edit Bon</h1>
         <p className="text-gray-500 text-sm mt-1">{transaction.nomor_bon}</p>
       </div>
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="dash-card p-6 md:p-8">
         <TransactionForm
           mode="edit"
           editId={transaction.id}
