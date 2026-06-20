@@ -14,7 +14,8 @@ import {
   FileText,
   Gift,
   BarChart3,
-  LogOut
+  LogOut,
+  X
 } from 'lucide-react'
 import './sidebar.css'
 
@@ -59,9 +60,11 @@ const navItems = [
 
 interface SidebarProps {
   userEmail: string
+  isOpen?: boolean
+  onClose?: () => void
 }
 
-export default function Sidebar({ userEmail }: SidebarProps) {
+export default function Sidebar({ userEmail, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -73,31 +76,52 @@ export default function Sidebar({ userEmail }: SidebarProps) {
   }
 
   return (
-    <aside className="sidebar">
-      {/* Logo */}
-      <div className="sidebar-brand">
-        <div className="sidebar-logo">
-          <span>HL</span>
-        </div>
-        <div>
-          <p className="sidebar-brand-title">HL Finance</p>
-          <p className="sidebar-brand-sub">Sales & Receivables</p>
-        </div>
-      </div>
-
-      {/* Navigation */}
-      <nav className="sidebar-nav">
-        {navItems.map((item) => {
-          const isActive = item.exact
-            ? pathname === item.href
-            : pathname.startsWith(item.href)
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`sidebar-link ${isActive ? 'sidebar-link-active' : ''}`}
+    <>
+      {/* Overlay untuk mobile saat sidebar terbuka */}
+      {isOpen && (
+        <div 
+          className="sidebar-overlay" 
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+      
+      <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
+        {/* Logo */}
+        <div className="sidebar-brand">
+          <div className="sidebar-logo">
+            <span>HL</span>
+          </div>
+          <div className="flex-1">
+            <p className="sidebar-brand-title">HL Finance</p>
+            <p className="sidebar-brand-sub">Sales & Receivables</p>
+          </div>
+          {/* Tombol tutup khusus mobile */}
+          {onClose && (
+            <button 
+              className="sidebar-close-btn" 
+              onClick={onClose}
+              aria-label="Tutup Menu"
             >
+              <X className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+
+        {/* Navigation */}
+        <nav className="sidebar-nav">
+          {navItems.map((item) => {
+            const isActive = item.exact
+              ? pathname === item.href
+              : pathname.startsWith(item.href)
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`sidebar-link ${isActive ? 'sidebar-link-active' : ''}`}
+                onClick={() => onClose?.()} // Tutup sidebar otomatis saat link diklik (di hp)
+              >
               <span className="sidebar-link-icon">
                 {item.icon}
               </span>
@@ -121,6 +145,7 @@ export default function Sidebar({ userEmail }: SidebarProps) {
         </button>
       </div>
     </aside>
+    </>
   )
 }
 

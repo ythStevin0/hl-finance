@@ -216,9 +216,6 @@
 }
 
 /* --- Transaction Row --- */
-.dash-tx-list {
-  /* no extra style needed — direct children handle dividers */
-}
 
 .dash-tx-row {
   padding: 0.75rem 1.25rem;
@@ -359,4 +356,65 @@
   text-align: center;
   color: #94a3b8;
   font-size: 0.8125rem;
+}
+
+/* ================================================================
+   MOBILE TOPBAR & RESPONSIVE (DashboardClientShell)
+   ================================================================ */
+
+.dashboard-topbar {
+  display: none;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0.75rem 1.25rem;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.topbar-logo-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.topbar-logo {
+  width: 1.75rem;
+  height: 1.75rem;
+  background: linear-gradient(135deg, #0c4a6e, #0ea5e9);
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.625rem;
+  font-weight: 700;
+}
+
+.topbar-title {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.topbar-menu-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+}
+
+@media (max-width: 768px) {
+  .dashboard-shell {
+    flex-direction: column;
+  }
+  .dashboard-topbar {
+    display: flex;
+  }
+  .dashboard-main {
+    padding-bottom: 2rem;
+  }
 }

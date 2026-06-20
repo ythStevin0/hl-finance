@@ -3,7 +3,7 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import Sidebar from '@/components/layout/Sidebar'
+import DashboardClientShell from '@/components/layout/DashboardClientShell'
 import './dashboard.css'
 
 export default async function DashboardLayout({
@@ -22,11 +22,8 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="dashboard-shell">
-      <Sidebar userEmail={user.email ?? ''} />
-      <main className="dashboard-main">
-        {children}
-      </main>
-    </div>
+    <DashboardClientShell userEmail={user.email ?? ''}>
+      {children}
+    </DashboardClientShell>
   )
 }

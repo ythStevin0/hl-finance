@@ -14,11 +14,11 @@ Password: [isi setelah buat user di Supabase]
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack & Fitur Utama
 
 - **Framework:** Next.js 14 (App Router, TypeScript)
-- **Styling:** Tailwind CSS
-- **Database & Auth:** Supabase (PostgreSQL + Supabase Auth)
+- **Styling:** Tailwind CSS dengan **Premium Dark Navy Theme**
+- **Database & Auth:** Supabase (PostgreSQL + Supabase Auth + RLS)
 - **Form validation:** React Hook Form + Zod
 - **PDF Export:** @react-pdf/renderer
 - **Date utility:** date-fns
@@ -59,10 +59,11 @@ Nilai ini bisa ditemukan di: **Supabase Dashboard → Settings → API**
 
 ### 3. Setup Database
 
-Buka **Supabase Dashboard → SQL Editor**, copy-paste dan jalankan isi file:
+Buka **Supabase Dashboard → SQL Editor**, copy-paste dan jalankan isi seluruh file:
 ```
 supabase_schema.sql
 ```
+*(Catatan: Pastikan semua baris termasuk GRANT dan RLS Policy berhasil dieksekusi agar aplikasi memiliki izin akses database yang tepat).*
 
 ### 4. Buat User (1 user, tidak ada self-registration)
 
@@ -85,14 +86,15 @@ Buka [http://localhost:3000](http://localhost:3000)
 
 ## 🗄️ Struktur Database
 
-| Tabel | Keterangan |
-|-------|-----------|
+| Tabel / View | Keterangan |
+|--------------|-----------|
 | `customers` | Data pelanggan + bonus threshold |
 | `customer_discount_steps` | Diskon bertingkat per customer per tipe (LM/BR) |
 | `products` | Produk dengan harga modal, harga base, tipe LM/BR |
 | `transactions` | Bon/invoice dengan status Piutang/Lunas |
 | `transaction_items` | Line items per bon (snapshot harga saat transaksi) |
 | `bonus_grants` | Log bonus yang sudah diberikan |
+| `customer_summary` | *(View)* Rekap total omzet, laba, piutang per pelanggan |
 
 ---
 
@@ -122,23 +124,25 @@ vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 ---
 
-## 📁 Struktur Folder
+## 📁 Struktur Folder Terbaru
 
 ```
 src/
 ├── app/
-│   ├── login/           # Auth pages
-│   ├── dashboard/
+│   ├── login/           # Auth pages (Premium UI)
+│   ├── dashboard/       # Dashboard & statistik
+│   │   ├── bonus/       # Pengelolaan & klaim bonus
 │   │   ├── customers/   # Customer CRUD + detail
 │   │   ├── products/    # Product CRUD
 │   │   ├── transactions/# Bon management
 │   │   └── reports/     # Laporan & export PDF
 ├── components/
-│   ├── layout/          # Sidebar, navbar
+│   ├── layout/          # Sidebar, navbar (Dark Navy Theme)
 │   ├── ui/              # Reusable components
 │   └── forms/           # Form components
 ├── lib/
 │   ├── supabase/        # Client, server, types
+│   ├── actions/         # Server Actions (Pemisahan Logika)
 │   └── calculations.ts  # Core business logic
 └── middleware.ts         # Auth protection
 ```
