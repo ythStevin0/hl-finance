@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import ProductForm from '@/components/products/ProductForm'
 
+import Link from 'next/link'
+
 export default async function EditProductPage({ params }: { params: { id: string } }) {
   const supabase = await createClient()
 
@@ -18,10 +20,17 @@ export default async function EditProductPage({ params }: { params: { id: string
   return (
     <div className="p-6 max-w-2xl mx-auto">
       <div className="mb-6">
+        <div className="flex items-center gap-2 mb-1 text-sm font-medium">
+          <Link href="/dashboard/products" className="text-gray-400 hover:text-gray-600">
+            Produk
+          </Link>
+          <span className="text-gray-300">/</span>
+          <span className="text-gray-600">Edit Produk</span>
+        </div>
         <h1 className="text-2xl font-bold text-gray-900">Edit Produk</h1>
         <p className="text-gray-500 text-sm mt-1">{product.nama}</p>
       </div>
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="dash-card p-6 md:p-8">
         <ProductForm
           mode="edit"
           initialData={{
