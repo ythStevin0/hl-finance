@@ -15,7 +15,6 @@ import {
 } from '@/lib/queries'
 import { MONTH_NAMES_SHORT, MONTH_NAMES_LONG } from '@/lib/constants'
 import StatCard from '@/components/ui/StatCard'
-import Badge from '@/components/ui/Badge'
 import SettleMonthButton from '@/components/customers/SettleMonthButton'
 import MonthSelector from '@/components/customers/MonthSelector'
 
@@ -115,64 +114,76 @@ export default async function CustomerDetailPage({ params, searchParams }: PageP
       )}
 
       {/* Transaction List — AC-6.1 */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="font-semibold text-gray-900 text-sm">
+      <div className="dash-card mt-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="dash-card-title">
             Transaksi {MONTH_NAMES_LONG[month - 1]} {year}
             <span className="ml-2 text-gray-400 font-normal">({transactions.length})</span>
           </h2>
           <Link
             href={`/dashboard/transactions/new?customer_id=${params.id}`}
-            className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+            className="text-xs font-bold text-[#f59e0b] hover:text-[#d97706]"
           >
             + Bon Baru
           </Link>
         </div>
 
-        {transactions.length > 0 ? (
-          <div className="divide-y divide-gray-50">
-            {transactions.map(t => (
-              <div key={t.id} className="px-5 py-3.5 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Link
-                      href={`/dashboard/transactions/${t.id}`}
-                      className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                    >
-                      {t.nomor_bon}
-                    </Link>
-                    {t.is_bonus && <Badge variant="bonus">Bonus</Badge>}
-                    <Badge variant={t.status === 'lunas' ? 'lunas' : 'piutang'}>
-                      {t.status === 'lunas' ? 'Lunas' : 'Piutang'}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {new Date(t.tanggal).toLocaleDateString('id-ID', {
-                      day: 'numeric', month: 'long', year: 'numeric',
-                    })}
-                    {t.payment_date && (
-                      <> · Bayar: {new Date(t.payment_date).toLocaleDateString('id-ID', {
-                        day: 'numeric', month: 'short',
-                      })}</>
-                    )}
-                  </p>
-                </div>
-                <div className="text-right shrink-0 ml-4">
-                  <p className="text-sm font-medium text-gray-900">
-                    {formatRupiah(t.total_omzet + t.ongkir)}
-                  </p>
-                  {t.ongkir > 0 && (
-                    <p className="text-xs text-gray-400">ongkir {formatRupiah(t.ongkir)}</p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="px-5 py-10 text-center text-gray-400 text-sm">
-            Tidak ada transaksi di bulan ini.
-          </div>
-        )}
+        <div className="dash-table-container">
+          <table className="dash-table">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Tanggal</th>
+                <th>Jenis</th>
+                <th>Omzet</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transactions.length > 0 ? (
+                transactions.map(t => (
+                  <tr key={t.id}>
+                    <td>
+                      <Link
+                        href={`/dashboard/transactions/${t.id}`}
+                        className="text-sm font-medium text-[#0f172a] hover:text-[#f59e0b]"
+                      >
+                        {t.nomor_bon}
+                      </Link>
+                      {t.is_bonus && <span className="dash-table-bonus">Bonus</span>}
+                    </td>
+                    <td className="text-gray">
+                      {new Date(t.tanggal).toLocaleDateString('id-ID', {
+                        day: 'numeric', month: 'short', year: 'numeric'
+                      })}
+                    </td>
+                    <td>
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium">
+                        {t.items?.[0]?.product_type ?? 'Mix'}
+                      </span>
+                    </td>
+                    <td>
+                      {formatRupiah(t.total_omzet + t.ongkir)}
+                    </td>
+                    <td>
+                      <span className={`dash-status-badge ${
+                        t.status === 'lunas' ? 'dash-status-paid' : 'dash-status-due'
+                      }`}>
+                        {t.status === 'lunas' ? 'PAID' : 'DUE'}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }} className="text-gray">
+                    Belum ada transaksi di bulan ini
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
