@@ -6,6 +6,8 @@ import { getActiveCustomers, getActiveProducts } from '@/lib/queries'
 import { getAllBonusStatuses } from '@/lib/actions/bonus.actions'
 import TransactionForm from '@/components/transactions/TransactionForm'
 
+import Link from 'next/link'
+
 interface PageProps {
   searchParams: { customer_id?: string; bonus?: string }
 }
@@ -41,12 +43,19 @@ export default async function NewTransactionPage({ searchParams }: PageProps) {
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <div className="mb-6">
+        <div className="flex items-center gap-2 mb-1 text-sm font-medium">
+          <Link href="/dashboard/transactions" className="text-gray-400 hover:text-gray-600">
+            Transaksi
+          </Link>
+          <span className="text-gray-300">/</span>
+          <span className="text-gray-600">Buat Bon Baru</span>
+        </div>
         <h1 className="text-2xl font-bold text-gray-900">Buat Bon Baru</h1>
         <p className="text-gray-500 text-sm mt-1">
           Status default: Piutang. Bisa diubah jadi Lunas setelah bon dibuat.
         </p>
       </div>
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="dash-card p-6 md:p-8">
         <TransactionForm
           mode="new"
           customers={customers}

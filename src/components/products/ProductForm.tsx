@@ -94,11 +94,9 @@ export default function ProductForm({ mode, initialData }: Props) {
               key={t}
               type="button"
               onClick={() => setType(t)}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-colors ${
+              className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-all ${
                 type === t
-                  ? t === 'LM'
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-green-600 text-white border-green-600'
+                  ? 'bg-[linear-gradient(135deg,#1c1917,#0a0a0a)] text-[#fde68a] border-[#292524] shadow-md'
                   : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
               }`}
             >
