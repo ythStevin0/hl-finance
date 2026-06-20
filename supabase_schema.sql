@@ -116,28 +116,48 @@ CREATE VIEW active_products AS
 
 -- View: rekap per customer (untuk laporan)
 -- Hanya transaksi LUNAS yang masuk omzet & laba (cash basis - D3)
-CREATE VIEW customer_summary AS
+CREATE OR REPLACE VIEW customer_summary AS
+WITH tx_agg AS (
   SELECT
-    c.id AS customer_id,
-    c.nama,
-    -- Omzet per type (hanya lunas, bukan bonus)
-    COALESCE(SUM(CASE WHEN t.status = 'lunas' AND t.is_bonus = FALSE AND ti.product_type = 'LM' THEN ti.line_omzet ELSE 0 END), 0) AS omzet_lm,
-    COALESCE(SUM(CASE WHEN t.status = 'lunas' AND t.is_bonus = FALSE AND ti.product_type = 'BR' THEN ti.line_omzet ELSE 0 END), 0) AS omzet_br,
-    COALESCE(SUM(CASE WHEN t.status = 'lunas' AND t.is_bonus = FALSE THEN ti.line_omzet ELSE 0 END), 0) AS total_omzet_lunas,
-    COALESCE(SUM(CASE WHEN t.status = 'lunas' AND t.is_bonus = FALSE THEN ti.line_laba ELSE 0 END), 0) AS total_laba_lunas,
-    -- Piutang = omzet + ongkir dari transaksi belum lunas (bukan bonus)
-    COALESCE(SUM(CASE WHEN t.status = 'piutang' AND t.is_bonus = FALSE THEN t.total_omzet + t.ongkir ELSE 0 END), 0) AS total_piutang,
-    -- Sudah dibayar = omzet + ongkir dari lunas
-    COALESCE(SUM(CASE WHEN t.status = 'lunas' AND t.is_bonus = FALSE THEN t.total_omzet + t.ongkir ELSE 0 END), 0) AS total_sudah_dibayar,
-    -- Bonus accumulator untuk eligibility check (AC-5.2)
-    COALESCE(SUM(CASE WHEN t.status = 'lunas' AND t.is_bonus = FALSE THEN t.total_omzet ELSE 0 END), 0) AS bonus_accumulator,
-    -- Bonus sudah diberikan
-    COALESCE((SELECT SUM(bg.quantity_granted) FROM bonus_grants bg WHERE bg.customer_id = c.id), 0) AS bonuses_granted
-  FROM customers c
-  LEFT JOIN transactions t ON t.customer_id = c.id
-  LEFT JOIN transaction_items ti ON ti.transaction_id = t.id
-  WHERE c.soft_deleted_at IS NULL
-  GROUP BY c.id, c.nama;
+    customer_id,
+    SUM(CASE WHEN status = 'piutang' AND is_bonus = false THEN total_omzet + ongkir ELSE 0 END) AS total_piutang,
+    SUM(CASE WHEN status = 'lunas' AND is_bonus = false THEN total_omzet + ongkir ELSE 0 END) AS total_sudah_dibayar,
+    SUM(CASE WHEN status = 'lunas' AND is_bonus = false THEN total_omzet ELSE 0 END) AS bonus_accumulator
+  FROM transactions
+  GROUP BY customer_id
+),
+ti_agg AS (
+  SELECT
+    t.customer_id,
+    SUM(CASE WHEN t.status = 'lunas' AND t.is_bonus = FALSE AND ti.product_type = 'LM' THEN ti.line_omzet ELSE 0 END) AS omzet_lm,
+    SUM(CASE WHEN t.status = 'lunas' AND t.is_bonus = FALSE AND ti.product_type = 'BR' THEN ti.line_omzet ELSE 0 END) AS omzet_br,
+    SUM(CASE WHEN t.status = 'lunas' AND t.is_bonus = FALSE THEN ti.line_omzet ELSE 0 END) AS total_omzet_lunas,
+    SUM(CASE WHEN t.status = 'lunas' AND t.is_bonus = FALSE THEN ti.line_laba ELSE 0 END) AS total_laba_lunas
+  FROM transactions t
+  JOIN transaction_items ti ON ti.transaction_id = t.id
+  GROUP BY t.customer_id
+),
+bg_agg AS (
+  SELECT customer_id, SUM(quantity_granted) AS bonuses_granted
+  FROM bonus_grants
+  GROUP BY customer_id
+)
+SELECT
+  c.id AS customer_id,
+  c.nama,
+  COALESCE(ti.omzet_lm, 0) AS omzet_lm,
+  COALESCE(ti.omzet_br, 0) AS omzet_br,
+  COALESCE(ti.total_omzet_lunas, 0) AS total_omzet_lunas,
+  COALESCE(ti.total_laba_lunas, 0) AS total_laba_lunas,
+  COALESCE(tx.total_piutang, 0) AS total_piutang,
+  COALESCE(tx.total_sudah_dibayar, 0) AS total_sudah_dibayar,
+  COALESCE(tx.bonus_accumulator, 0) AS bonus_accumulator,
+  COALESCE(bg.bonuses_granted, 0) AS bonuses_granted
+FROM customers c
+LEFT JOIN tx_agg tx ON tx.customer_id = c.id
+LEFT JOIN ti_agg ti ON ti.customer_id = c.id
+LEFT JOIN bg_agg bg ON bg.customer_id = c.id
+WHERE c.soft_deleted_at IS NULL;
 
 -- ============================================================
 -- 8. UPDATED_AT trigger untuk transactions

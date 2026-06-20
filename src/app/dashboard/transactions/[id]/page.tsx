@@ -8,7 +8,6 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getTransactionById } from '@/lib/queries'
 import { formatRupiah } from '@/lib/calculations'
-import Badge from '@/components/ui/Badge'
 import SettleBonButton from '@/components/transactions/SettleBonButton'
 import DeleteTransactionButton from '@/components/transactions/DeleteTransactionButton'
 
@@ -39,12 +38,14 @@ export default async function TransactionDetailPage({
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-3 flex-wrap mb-2">
             <h1 className="text-2xl font-bold text-gray-900">{transaction.nomor_bon}</h1>
-            {transaction.is_bonus && <Badge variant="bonus">Bon Bonus</Badge>}
-            <Badge variant={transaction.status === 'lunas' ? 'lunas' : 'piutang'}>
-              {transaction.status === 'lunas' ? 'Lunas' : 'Piutang'}
-            </Badge>
+            {transaction.is_bonus && <span className="dash-table-bonus">Bon Bonus</span>}
+            <span className={`dash-status-badge ${
+              transaction.status === 'lunas' ? 'dash-status-paid' : 'dash-status-due'
+            }`}>
+              {transaction.status === 'lunas' ? 'PAID' : 'DUE'}
+            </span>
           </div>
           <p className="text-gray-500 text-sm mt-1">
             {transaction.customers?.nama} ·{' '}
@@ -53,7 +54,7 @@ export default async function TransactionDetailPage({
             })}
           </p>
           {transaction.payment_date && (
-            <p className="text-green-600 text-sm mt-0.5">
+            <p className="text-emerald-600 font-medium text-sm mt-0.5">
               Dilunasi:{' '}
               {new Date(transaction.payment_date).toLocaleDateString('id-ID', {
                 day: 'numeric', month: 'long', year: 'numeric',
@@ -74,7 +75,7 @@ export default async function TransactionDetailPage({
           )}
           <Link
             href={`/dashboard/transactions/${transaction.id}/edit`}
-            className="btn-secondary"
+            className="px-4 py-2 text-sm font-medium text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors border border-amber-200"
           >
             Edit
           </Link>
@@ -86,67 +87,75 @@ export default async function TransactionDetailPage({
       </div>
 
       {/* Line Items — AC-6.9 */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-4">
-        <div className="px-5 py-3 bg-gray-50 border-b border-gray-200">
-          <div className="grid grid-cols-12 gap-3 text-xs font-medium text-gray-400 uppercase tracking-wide">
-            <div className="col-span-5">Produk</div>
-            <div className="col-span-1 text-center">Qty</div>
-            <div className="col-span-3 text-right">Harga/Unit</div>
-            <div className="col-span-3 text-right">Omzet</div>
-          </div>
-        </div>
-        <div className="divide-y divide-gray-50">
-          {transaction.items.map(item => (
-            <div key={item.id} className="grid grid-cols-12 gap-3 px-5 py-3.5 items-center">
-              <div className="col-span-5">
-                <div className="flex items-center gap-2">
-                  <Badge variant={item.product_type === 'LM' ? 'lm' : 'br'}>
-                    {item.product_type}
-                  </Badge>
-                  <span className="text-sm text-gray-900">{item.product_nama}</span>
-                  {item.is_free && (
-                    <span className="text-xs text-purple-600 font-medium">(Gratis)</span>
-                  )}
-                </div>
-              </div>
-              <div className="col-span-1 text-center text-sm text-gray-600">
-                {item.qty}
-              </div>
-              <div className="col-span-3 text-right">
-                <p className="text-sm text-gray-900">{formatRupiah(item.discounted_unit_price)}</p>
-                {item.harga_base_snapshot !== item.discounted_unit_price && (
-                  <p className="text-xs text-gray-400 line-through">
-                    {formatRupiah(item.harga_base_snapshot)}
-                  </p>
-                )}
-              </div>
-              <div className="col-span-3 text-right">
-                <p className="text-sm font-medium text-gray-900">
-                  {formatRupiah(item.line_omzet)}
-                </p>
-              </div>
-            </div>
-          ))}
+      <div className="dash-card p-0 mb-6">
+        <div className="dash-table-container">
+          <table className="dash-table">
+            <thead>
+              <tr>
+                <th>Produk</th>
+                <th style={{ textAlign: 'center' }}>Qty</th>
+                <th style={{ textAlign: 'right' }}>Harga/Unit</th>
+                <th style={{ textAlign: 'right' }}>Omzet</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transaction.items.map(item => (
+                <tr key={item.id}>
+                  <td>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                        item.product_type === 'LM' 
+                          ? 'bg-[#f5f5f4] text-[#d97706] border border-[#e7e5e4]' 
+                          : 'bg-[#1c1917] text-[#fde68a]'
+                      }`}>
+                        {item.product_type}
+                      </span>
+                      <span className="text-sm font-medium text-[#0f172a]">{item.product_nama}</span>
+                      {item.is_free && (
+                        <span className="text-xs text-purple-600 font-medium">(Gratis)</span>
+                      )}
+                    </div>
+                  </td>
+                  <td style={{ textAlign: 'center' }}>
+                    <span className="text-sm font-medium text-gray-700">{item.qty}</span>
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <p className="text-sm text-gray-900">{formatRupiah(item.discounted_unit_price)}</p>
+                    {item.harga_base_snapshot !== item.discounted_unit_price && (
+                      <p className="text-xs text-gray-400 line-through">
+                        {formatRupiah(item.harga_base_snapshot)}
+                      </p>
+                    )}
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <p className="text-sm font-medium text-gray-900">
+                      {formatRupiah(item.line_omzet)}
+                    </p>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
       {/* Summary */}
-      <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 space-y-2">
+      <div className="dash-card bg-[#fafaf9] border-[#e7e5e4] p-5 space-y-3">
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Total Omzet</span>
-          <span className="font-medium">{formatRupiah(transaction.total_omzet)}</span>
+          <span className="text-gray-500 font-medium">Total Omzet</span>
+          <span className="font-semibold text-gray-900">{formatRupiah(transaction.total_omzet)}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Ongkir</span>
-          <span className="font-medium">{formatRupiah(transaction.ongkir)}</span>
+          <span className="text-gray-500 font-medium">Ongkir</span>
+          <span className="font-semibold text-gray-900">{formatRupiah(transaction.ongkir)}</span>
         </div>
-        <div className="flex justify-between text-sm border-t border-gray-200 pt-2">
-          <span className="font-semibold text-gray-900">Total Tagihan</span>
-          <span className="font-bold text-lg text-blue-600">{formatRupiah(totalTagihan)}</span>
+        <div className="flex justify-between text-base border-t border-gray-200 pt-3">
+          <span className="font-bold text-[#0f172a]">Total Tagihan</span>
+          <span className="font-bold text-lg text-amber-600">{formatRupiah(totalTagihan)}</span>
         </div>
-        <div className="flex justify-between text-sm border-t border-gray-200 pt-2">
-          <span className="text-xs text-gray-400">Laba HL (internal)</span>
-          <span className="text-xs font-medium text-green-600">
+        <div className="flex justify-between text-sm border-t border-gray-200 pt-3 mt-1">
+          <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Laba HL (Internal)</span>
+          <span className="text-xs font-bold text-emerald-600">
             {formatRupiah(transaction.total_laba)}
           </span>
         </div>
@@ -154,9 +163,9 @@ export default async function TransactionDetailPage({
 
       {/* Deskripsi */}
       {transaction.deskripsi && (
-        <div className="mt-4 bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-xs text-gray-400 mb-1">Deskripsi</p>
-          <p className="text-sm text-gray-700">{transaction.deskripsi}</p>
+        <div className="mt-6 dash-card">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Deskripsi / Catatan</p>
+          <p className="text-sm text-[#0f172a] whitespace-pre-wrap">{transaction.deskripsi}</p>
         </div>
       )}
     </div>

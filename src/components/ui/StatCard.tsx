@@ -26,7 +26,7 @@ export default function StatCard({
   color = 'gray',
   icon,
 }: StatCardProps) {
-  // Jika icon disediakan, gunakan layout card dashboard dengan gradient/styling premium
+  // Jika icon disediakan, menggunakan layout card dashboard dengan gradient/styling premium
   if (icon) {
     const dashColor = color === 'purple' ? 'gray' : color
     return (
@@ -42,11 +42,11 @@ export default function StatCard({
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4">
-      <p className="text-xs font-medium text-gray-400 mb-1">{label}</p>
-      <p className={`text-lg font-bold ${COLOR_MAP[color]}`}>{value}</p>
+    <div className="dash-card p-5 flex flex-col justify-center">
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">{label}</p>
+      <p className={`text-xl font-bold ${COLOR_MAP[color]}`}>{value}</p>
       {description && (
-        <p className="text-xs text-gray-400 mt-0.5">{description}</p>
+        <p className="text-xs font-medium text-gray-500 mt-1">{description}</p>
       )}
     </div>
   )

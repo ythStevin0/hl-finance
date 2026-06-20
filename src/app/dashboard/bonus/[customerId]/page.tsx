@@ -32,7 +32,7 @@ export default async function CustomerBonusLogPage({
     .order('created_at', { ascending: false })
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="p-6 max-w-4xl mx-auto">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 mb-1 text-sm">
         <Link href="/dashboard/bonus" className="text-gray-400 hover:text-gray-600">
@@ -45,57 +45,70 @@ export default async function CustomerBonusLogPage({
       <h1 className="text-2xl font-bold text-gray-900 mb-6">{customer.nama}</h1>
 
       {/* Status Card */}
-      <div className="mb-6">
+      <div className="mb-8">
         <BonusStatusCard status={bonusStatus} showLink={false} />
       </div>
 
       {/* Bonus Grant History — AC-5.8, AC-7.7 */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-900 text-sm">
+      <div className="dash-card p-0">
+        <div className="px-5 py-4 flex items-center justify-between mb-2">
+          <h2 className="dash-card-title">
             Riwayat Bonus Diberikan
             <span className="ml-2 text-gray-400 font-normal">({grants?.length ?? 0})</span>
           </h2>
         </div>
 
-        {grants && grants.length > 0 ? (
-          <div className="divide-y divide-gray-50">
-            {grants.map(grant => (
-              <div key={grant.id} className="px-5 py-3.5 flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-medium">
-                      {grant.quantity_granted}× bonus
-                    </span>
-                    <Link
-                      href={`/dashboard/transactions/${grant.transactions?.id}`}
-                      className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                    >
-                      {grant.transactions?.nomor_bon ?? '—'}
-                    </Link>
-                  </div>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {grant.transactions?.tanggal
-                      ? new Date(grant.transactions.tanggal).toLocaleDateString('id-ID', {
-                          day: 'numeric', month: 'long', year: 'numeric',
-                        })
-                      : '—'}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-red-500">
-                    − {formatRupiah(grant.quantity_granted * bonusStatus.threshold)}
-                  </p>
-                  <p className="text-xs text-gray-400">dikonsumsi</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="px-5 py-10 text-center text-gray-400 text-sm">
-            Belum ada bonus yang pernah diberikan.
-          </div>
-        )}
+        <div className="dash-table-container">
+          <table className="dash-table">
+            <thead>
+              <tr>
+                <th>Bonus Diklaim</th>
+                <th>Nomor Bon</th>
+                <th>Tanggal</th>
+                <th style={{ textAlign: 'right' }}>Nilai Konsumsi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {grants && grants.length > 0 ? (
+                grants.map(grant => (
+                  <tr key={grant.id}>
+                    <td>
+                      <span className="dash-table-bonus">
+                        {grant.quantity_granted}× bonus
+                      </span>
+                    </td>
+                    <td>
+                      <Link
+                        href={`/dashboard/transactions/${grant.transactions?.id}`}
+                        className="text-sm font-medium text-[#0f172a] hover:text-[#d97706]"
+                      >
+                        {grant.transactions?.nomor_bon ?? '—'}
+                      </Link>
+                    </td>
+                    <td className="text-gray">
+                      {grant.transactions?.tanggal
+                        ? new Date(grant.transactions.tanggal).toLocaleDateString('id-ID', {
+                            day: 'numeric', month: 'short', year: 'numeric',
+                          })
+                        : '—'}
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <p className="text-sm font-medium text-rose-500">
+                        − {formatRupiah(grant.quantity_granted * bonusStatus.threshold)}
+                      </p>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} style={{ textAlign: 'center', padding: '2rem' }} className="text-gray">
+                    Belum ada bonus yang pernah diberikan.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
