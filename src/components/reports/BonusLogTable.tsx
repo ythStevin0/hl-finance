@@ -12,43 +12,51 @@ export default function BonusLogTable({ rows }: Props) {
   if (rows.length === 0) return null
 
   return (
-    <div className="mt-6">
+    <div className="mt-8">
       <div className="flex items-center gap-2 mb-3">
         <h3 className="text-sm font-semibold text-gray-900">Log Bon Bonus</h3>
-        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
+        <span className="dash-table-bonus">
           {rows.length} bon
         </span>
         <span className="text-xs text-gray-400">
           — tidak termasuk dalam omzet & laba di atas
         </span>
       </div>
-      <div className="rounded-xl border border-purple-100 overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-purple-50 border-b border-purple-100">
-              <th className="py-2.5 px-4 text-left text-xs font-medium text-purple-600 uppercase tracking-wide">Tanggal</th>
-              <th className="py-2.5 px-4 text-left text-xs font-medium text-purple-600 uppercase tracking-wide">Nomor Bon</th>
-              <th className="py-2.5 px-4 text-left text-xs font-medium text-purple-600 uppercase tracking-wide">Pelanggan</th>
-              <th className="py-2.5 px-4 text-right text-xs font-medium text-purple-600 uppercase tracking-wide">Bonus</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-purple-50 bg-white">
-            {rows.map((row, i) => (
-              <tr key={i} className="hover:bg-purple-50 transition-colors">
-                <td className="py-2.5 px-4 text-sm text-gray-600">
-                  {new Date(row.tanggal).toLocaleDateString('id-ID', {
-                    day: 'numeric', month: 'short', year: 'numeric',
-                  })}
-                </td>
-                <td className="py-2.5 px-4 text-sm font-medium text-purple-700">{row.nomorBon}</td>
-                <td className="py-2.5 px-4 text-sm text-gray-700">{row.customerNama}</td>
-                <td className="py-2.5 px-4 text-sm text-right text-purple-700 font-medium">
-                  {row.quantityGranted}× bonus
-                </td>
+      <div className="dash-card p-0 overflow-hidden">
+        <div className="dash-table-container">
+          <table className="dash-table">
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Nomor Bon</th>
+                <th>Pelanggan</th>
+                <th style={{ textAlign: 'right' }}>Bonus</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((row, i) => (
+                <tr key={i}>
+                  <td className="text-gray">
+                    {new Date(row.tanggal).toLocaleDateString('id-ID', {
+                      day: 'numeric', month: 'short', year: 'numeric',
+                    })}
+                  </td>
+                  <td>
+                    <span className="text-sm font-medium text-[#0f172a]">{row.nomorBon}</span>
+                  </td>
+                  <td>
+                    <span className="text-sm text-gray-700">{row.customerNama}</span>
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <span className="dash-table-bonus">
+                      {row.quantityGranted}× bonus
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )

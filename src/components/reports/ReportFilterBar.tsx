@@ -50,11 +50,11 @@ export default function ReportFilterBar({
   )
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6 space-y-4">
+    <div className="dash-card mb-6 space-y-4">
       {/* Scope selector — AC-7.1, 7.2, 7.3 */}
       <div>
-        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Jenis Laporan</p>
-        <div className="flex gap-2 flex-wrap">
+        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">Jenis Laporan</p>
+        <div className="inline-flex p-1 bg-gray-100/80 rounded-xl border border-gray-200/60 gap-1 flex-wrap">
           {([
             { value: 'overall',      label: 'Semua Customer' },
             { value: 'customer',     label: 'Per Customer'   },
@@ -63,10 +63,10 @@ export default function ReportFilterBar({
             <button
               key={opt.value}
               onClick={() => updateParam('scope', opt.value)}
-              className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
                 currentScope === opt.value
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-[linear-gradient(135deg,#1c1917,#0a0a0a)] text-[#fde68a] shadow-md'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'
               }`}
             >
               {opt.label}
@@ -77,13 +77,13 @@ export default function ReportFilterBar({
 
       {/* Customer picker — hanya muncul kalau scope=customer */}
       {currentScope === 'customer' && (
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Pelanggan</p>
+        <div className="flex flex-wrap gap-6">
+          <div className="min-w-[200px]">
+            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">Pelanggan</p>
             <select
               value={currentCustomerId}
               onChange={e => updateParam('customerId', e.target.value)}
-              className="input-base text-sm"
+              className="dash-input text-sm font-medium w-full"
             >
               <option value="">— Pilih Pelanggan —</option>
               {customers.map(c => (
@@ -92,19 +92,19 @@ export default function ReportFilterBar({
             </select>
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Filter Tipe</p>
-            <div className="flex gap-2">
+            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">Filter Tipe</p>
+            <div className="inline-flex p-1 bg-gray-100/80 rounded-xl border border-gray-200/60 gap-1">
               {(['ALL', 'LM', 'BR'] as ProductTypeFilter[]).map(t => (
                 <button
                   key={t}
                   onClick={() => updateParam('productType', t)}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
                     currentProductType === t
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-[linear-gradient(135deg,#1c1917,#0a0a0a)] text-[#fde68a] shadow-md'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'
                   }`}
                 >
-                  {t === 'ALL' ? 'Semua' : t}
+                  {t === 'ALL' ? 'Semua Tipe' : t}
                 </button>
               ))}
             </div>
@@ -113,13 +113,13 @@ export default function ReportFilterBar({
       )}
 
       {/* Year + Month filter — AC-7.4 */}
-      <div className="flex gap-3 flex-wrap">
+      <div className="flex gap-4 flex-wrap">
         <div>
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Tahun</p>
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">Tahun</p>
           <select
             value={currentYear}
             onChange={e => updateParam('year', e.target.value)}
-            className="input-base text-sm w-28"
+            className="dash-input text-sm font-medium w-28"
           >
             {years.map(y => (
               <option key={y} value={y}>{y}</option>
@@ -127,11 +127,11 @@ export default function ReportFilterBar({
           </select>
         </div>
         <div>
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Bulan</p>
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">Bulan</p>
           <select
             value={currentMonth}
             onChange={e => updateParam('month', e.target.value)}
-            className="input-base text-sm w-36"
+            className="dash-input text-sm font-medium w-40"
           >
             <option value="0">Semua Bulan</option>
             {MONTH_NAMES_LONG.map((name, i) => (

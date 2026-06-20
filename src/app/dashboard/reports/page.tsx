@@ -16,8 +16,9 @@ import type { ReportScope, ProductTypeFilter } from '@/lib/types/report'
 import ReportFilterBar from '@/components/reports/ReportFilterBar'
 import ReportTable from '@/components/reports/ReportTable'
 import BonusLogTable from '@/components/reports/BonusLogTable'
-import DownloadPdfButton from '@/components/reports/DownloadPdfButton'
+import DownloadReportButton from '@/components/reports/DownloadReportButton'
 import StatCard from '@/components/ui/StatCard'
+import ReportCharts from '@/components/reports/ReportCharts'
 
 interface PageProps {
   searchParams: {
@@ -77,8 +78,8 @@ export default async function ReportsPage({ searchParams }: PageProps) {
               Rekap omzet, laba, dan piutang — hanya transaksi Lunas (cash basis)
             </p>
           </div>
-          {/* AC-7.8: Download PDF */}
-          <DownloadPdfButton
+          {/* AC-7.8: Download PDF & Excel */}
+          <DownloadReportButton
             data={reportData}
             title={pdfTitle}
             subtitle={pdfSubtitle}
@@ -125,8 +126,11 @@ export default async function ReportsPage({ searchParams }: PageProps) {
           />
         </div>
 
+        {/* Charts Section */}
+        <ReportCharts data={reportData.rows} />
+
         {/* Rekap Table — AC-7.5, AC-6.3 */}
-        <div className="mb-2">
+        <div id="detail-rekap" className="mb-2 scroll-mt-6">
           <h2 className="text-sm font-semibold text-gray-900 mb-3">
             Detail Rekap · {scopeLabel} · {monthLabel} {year}
           </h2>
