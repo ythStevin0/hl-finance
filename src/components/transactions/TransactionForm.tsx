@@ -217,15 +217,15 @@ export default function TransactionForm({
       </div>
 
       {/* Bonus toggle — AC-5.5 */}
-      <div className="flex items-center gap-3 bg-purple-50 border border-purple-100 rounded-xl px-4 py-3">
+      <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
         <input
           type="checkbox"
           id="is_bonus"
           checked={isBonus}
           onChange={e => setIsBonus(e.target.checked)}
-          className="w-4 h-4 accent-purple-600"
+          className="w-4 h-4 accent-amber-600"
         />
-        <label htmlFor="is_bonus" className="text-sm font-medium text-purple-800 cursor-pointer">
+        <label htmlFor="is_bonus" className="text-sm font-medium text-amber-900 cursor-pointer">
           Bon Bonus — produk diberikan gratis, tidak masuk omzet & laba
         </label>
       </div>
@@ -272,7 +272,7 @@ export default function TransactionForm({
           <button
             type="button"
             onClick={form.addLineItem}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1.5"
+            className="text-sm text-amber-600 hover:text-amber-700 font-bold flex items-center gap-1.5"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -311,8 +311,8 @@ export default function TransactionForm({
       <TransactionSummaryFooter summary={form.summary} showLaba />
 
       {/* Actions */}
-      <div className="flex gap-3">
-        <button type="submit" disabled={loading} className="btn-primary">
+      <div className="flex gap-3 pt-2">
+        <button type="submit" disabled={loading} className="dash-vip-btn" style={{ width: 'auto', padding: '0.6rem 1.25rem' }}>
           {loading
             ? 'Menyimpan...'
             : mode === 'new' ? 'Buat Bon' : 'Simpan Perubahan'}

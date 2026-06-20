@@ -31,21 +31,27 @@
 @layer components {
   /* Reusable input style */
   .input-base {
-    @apply w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm
-           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-           transition-shadow bg-white;
+    @apply w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm bg-gray-50/80
+           focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent
+           focus:bg-white transition-all text-gray-800 shadow-sm;
+  }
+  
+  .dash-input {
+    @apply w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-gray-50
+           focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent
+           focus:bg-white transition-all text-gray-800 shadow-sm;
   }
   
   /* Button variants */
   .btn-primary {
-    @apply bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400
-           text-white font-medium py-2.5 px-4 rounded-lg text-sm
-           transition-colors duration-150 flex items-center justify-center gap-2;
+    @apply bg-[linear-gradient(135deg,#1c1917,#0a0a0a)] hover:opacity-90 disabled:opacity-50
+           text-[#fde68a] font-bold py-2.5 px-5 rounded-xl text-sm shadow-md
+           transition-all duration-150 flex items-center justify-center gap-2 border border-[#292524];
   }
   
   .btn-secondary {
-    @apply bg-white hover:bg-gray-50 border border-gray-300
-           text-gray-700 font-medium py-2.5 px-4 rounded-lg text-sm
+    @apply bg-white hover:bg-gray-50 border border-gray-200 shadow-sm
+           text-gray-700 font-bold py-2.5 px-5 rounded-xl text-sm
            transition-colors duration-150 flex items-center justify-center gap-2;
   }
   

@@ -31,12 +31,11 @@
   inset: 0;
   background: linear-gradient(
     135deg,
-    #0f172a 0%,
-    #1e3a5f 25%,
-    #0c4a6e 45%,
-    #155e75 60%,
-    #164e63 75%,
-    #0f172a 100%
+    #0a0a0a 0%,
+    #1c1917 25%,
+    #292524 45%,
+    #1c1917 60%,
+    #0a0a0a 100%
   );
   background-size: 400% 400%;
   animation: gradientShift 12s ease infinite;
@@ -73,7 +72,7 @@
   height: 320px;
   top: 10%;
   right: 15%;
-  background: radial-gradient(circle, #0ea5e9, #0284c7);
+  background: radial-gradient(circle, #f59e0b, #d97706);
   animation-delay: 0s;
 }
 
@@ -82,7 +81,7 @@
   height: 240px;
   bottom: 25%;
   left: 10%;
-  background: radial-gradient(circle, #06b6d4, #0891b2);
+  background: radial-gradient(circle, #fbbf24, #f59e0b);
   animation-delay: -3s;
   animation-duration: 10s;
 }
@@ -92,10 +91,10 @@
   height: 180px;
   top: 45%;
   right: 35%;
-  background: radial-gradient(circle, #38bdf8, #7dd3fc);
+  background: radial-gradient(circle, #fde68a, #fcd34d);
   animation-delay: -6s;
   animation-duration: 7s;
-  opacity: 0.2;
+  opacity: 0.15;
 }
 
 @keyframes blobFloat {
@@ -294,12 +293,12 @@
 .login-mobile-logo-icon {
   width: 52px;
   height: 52px;
-  background: linear-gradient(135deg, #0c4a6e, #0ea5e9);
+  background: linear-gradient(135deg, #d97706, #f59e0b);
   border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.3);
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);
 }
 
 .login-mobile-logo-icon span {
@@ -376,13 +375,13 @@
 }
 
 .login-input-wrapper input:focus {
-  border-color: #0ea5e9;
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
 }
 
 .login-input-wrapper input:focus ~ .login-input-icon,
 .login-input-wrapper:focus-within .login-input-icon {
-  color: #0ea5e9;
+  color: #f59e0b;
 }
 
 /* Password toggle */
@@ -450,7 +449,7 @@
   font-size: 0.9375rem;
   font-weight: 600;
   color: white;
-  background: linear-gradient(135deg, #0c4a6e, #0369a1);
+  background: linear-gradient(135deg, #d97706, #b45309);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -458,23 +457,23 @@
   gap: 0.5rem;
   transition: all 0.25s ease;
   box-shadow:
-    0 1px 3px rgba(12, 74, 110, 0.2),
-    0 4px 12px rgba(12, 74, 110, 0.15);
+    0 1px 3px rgba(217, 119, 6, 0.2),
+    0 4px 12px rgba(217, 119, 6, 0.15);
   margin-top: 0.25rem;
 }
 
 .login-submit-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #0e527a, #0284c7);
+  background: linear-gradient(135deg, #b45309, #92400e);
   box-shadow:
-    0 2px 6px rgba(12, 74, 110, 0.25),
-    0 8px 24px rgba(12, 74, 110, 0.2);
+    0 2px 6px rgba(217, 119, 6, 0.25),
+    0 8px 24px rgba(217, 119, 6, 0.2);
   transform: translateY(-1px);
 }
 
 .login-submit-btn:active:not(:disabled) {
   transform: translateY(0);
   box-shadow:
-    0 1px 2px rgba(12, 74, 110, 0.2);
+    0 1px 2px rgba(217, 119, 6, 0.2);
 }
 
 .login-submit-btn:disabled {
